@@ -1,0 +1,9 @@
+Method,Strict_Wins,Within_2x,Total_Scenarios
+Barron,16,46,81
+Cauchy,11,48,81
+GM,13,39,81
+Huber,3,22,81
+Lf_dual,25,48,81
+OLS,0,3,81
+Tukey,9,39,81
+Welsch,4,29,81
