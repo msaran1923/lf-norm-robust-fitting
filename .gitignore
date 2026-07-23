@@ -26,7 +26,5 @@ Thumbs.db
 
 # Project-specific
 nist_cache.json
-experiment_results/*.csv
-experiment_results/*.pdf
 experiment_results/*.png
 !experiment_results/.gitkeep
