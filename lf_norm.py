@@ -144,7 +144,7 @@ def randomized_svd(A, target_rank, n_oversampling=10, n_power_iter=2):
     if k >= p:
         return np.linalg.svd(A, full_matrices=False)
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(0)
     Omega = rng.standard_normal((p, k))
 
     # Power iteration for better approximation of slowly decaying spectra
