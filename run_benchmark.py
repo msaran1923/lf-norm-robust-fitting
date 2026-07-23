@@ -321,18 +321,24 @@ def run_leverage_benchmark(n_trials=20):
                 theta_ols, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
                 pe_ols = float(np.linalg.norm(theta_ols - theta_true))
             except Exception:
+                theta_ols = theta0.copy()
                 pe_ols = np.inf
 
             # Estimate MAD scale for baselines
             s_mad = estimate_initial_scale(X, y, theta0.copy(),
                                             model_linear_nd, jac_linear_nd)
 
+            # PROTOCOL: scale-dependent baselines (Huber, Cauchy, Barron)
+            # are initialized at the OLS solution -- standard practice for
+            # redescending M-estimators and favorable to the baselines. From
+            # the distant zero start, a redescending loss with a correctly
+            # tight scale treats every observation as an outlier and stalls.
             # Huber (MAD-adaptive)
             try:
                 from scipy.optimize import least_squares
                 res_h = least_squares(
                     fun=lambda th: model_linear_nd(X, th) - y,
-                    x0=theta0.copy(), jac=lambda th: jac_linear_nd(X, th),
+                    x0=theta_ols.copy(), jac=lambda th: jac_linear_nd(X, th),
                     method="trf", loss="huber", f_scale=s_mad, max_nfev=5000)
                 pe_huber = float(np.linalg.norm(res_h.x - theta_true))
             except Exception:
@@ -342,7 +348,7 @@ def run_leverage_benchmark(n_trials=20):
             try:
                 res_c = least_squares(
                     fun=lambda th: model_linear_nd(X, th) - y,
-                    x0=theta0.copy(), jac=lambda th: jac_linear_nd(X, th),
+                    x0=theta_ols.copy(), jac=lambda th: jac_linear_nd(X, th),
                     method="trf", loss="cauchy", f_scale=s_mad, max_nfev=5000)
                 pe_cauchy = float(np.linalg.norm(res_c.x - theta_true))
             except Exception:
@@ -351,7 +357,7 @@ def run_leverage_benchmark(n_trials=20):
             # Barron (MAD-adaptive, α → 0)
             try:
                 res_b = solve_barron_annealing(
-                    X, y, theta0.copy(), model_linear_nd, jac_linear_nd,
+                    X, y, theta_ols.copy(), model_linear_nd, jac_linear_nd,
                     c=s_mad, alpha_target=0.0, max_iter=200)
                 pe_barron = float(np.linalg.norm(res_b["theta"] - theta_true))
             except Exception:
